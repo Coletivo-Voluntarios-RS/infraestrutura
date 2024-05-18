@@ -1,0 +1,53 @@
+version: '3.8'
+
+networks:
+  sos-network:
+    name: sos-network
+    driver: bridge
+
+volumes:
+  postgres-sos-dev:
+  postgres-auth-dev:
+
+services:
+  sos-database:
+    container_name: postgres-sos
+    image: postgres:16.2-alpine3.19
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h postgres-sos -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sos-network
+    volumes:
+      - postgres-sos-dev:/var/lib/postgresql/data
+
+  auth-database:
+    container_name: postgres-auth
+    image: postgres:16.2-alpine3.19
+    restart: always
+    command: 
+      - -p 5433
+    ports:
+      - 5433:5433
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h postgres-auth -p 5433"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sos-network
+    volumes:
+      - postgres-auth-dev:/var/lib/postgresql/data
